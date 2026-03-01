@@ -1,4 +1,4 @@
-# math_d 🚀 
+# math_d 
 ### A Hardware-Optimized, Minimalist Math Library in C
 
 This library is a collection of high-performance numerical methods and mathematical approximations, designed with a focus on **FPU efficiency**, **branchless programming**, and **low-level bit manipulation**.
