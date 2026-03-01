@@ -21,3 +21,8 @@ double slope = diff_d(sin_d, 0.5235);
 
 // Example: Calculate the area of sine from 0 to PI
 double area = integral_d(sin_d, 0, 3.1415);
+```
+## Build & Run
+```
+gcc main.c math_d.c -o math_test
+./math_test
