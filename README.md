@@ -37,5 +37,6 @@ mat4_multiply(&result, &matA, &matB);
 
 ## Build & Run
 ```
-gcc main.c math_d.c -o math_test -O3
-./math_test
+gcc -O3 -march=native -masm=intel main.c math_d.c -o main
+
+./main
