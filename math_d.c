@@ -93,3 +93,132 @@ double integral_d(MathFunc f, double a, double b) {
 
     return total_sum * dx;
 }
+
+/**
+ * @brief Adds two 4x4 matrices element-wise.
+ * * @details This function uses loop unrolling for maximum performance by eliminating 
+ * CPU branching overhead. The flat 1D array structure ensures optimal L1 cache utilization.
+ * * @param result Pointer to the matrix where the sum will be stored.
+ * @param a Pointer to the first input matrix (read-only).
+ * @param b Pointer to the second input matrix (read-only).
+ */
+void mat4_add(mat4 *result, const mat4 *a, const mat4 *b) {
+    result->m[0]  = a->m[0]  + b->m[0];
+    result->m[1]  = a->m[1]  + b->m[1];
+    result->m[2]  = a->m[2]  + b->m[2];
+    result->m[3]  = a->m[3]  + b->m[3];
+
+    result->m[4]  = a->m[4]  + b->m[4];
+    result->m[5]  = a->m[5]  + b->m[5];
+    result->m[6]  = a->m[6]  + b->m[6];
+    result->m[7]  = a->m[7]  + b->m[7];
+
+    result->m[8]  = a->m[8]  + b->m[8];
+    result->m[9]  = a->m[9]  + b->m[9];
+    result->m[10] = a->m[10] + b->m[10];
+    result->m[11] = a->m[11] + b->m[11];
+
+    result->m[12] = a->m[12] + b->m[12];
+    result->m[13] = a->m[13] + b->m[13];
+    result->m[14] = a->m[14] + b->m[14];
+    result->m[15] = a->m[15] + b->m[15];
+}
+
+/**
+ * @brief Subtracts the second 4x4 matrix from the first element-wise.
+ * * @details Similar to the addition function, this utilizes loop unrolling to 
+ * maximize instruction throughput and prevent cache misses during execution.
+ * * @param result Pointer to the matrix where the difference will be stored.
+ * @param a Pointer to the base matrix (read-only).
+ * @param b Pointer to the matrix to subtract (read-only).
+ */
+void mat4_sub(mat4 *result, const mat4 *a, const mat4 *b) {
+    result->m[0]  = a->m[0]  - b->m[0];
+    result->m[1]  = a->m[1]  - b->m[1];
+    result->m[2]  = a->m[2]  - b->m[2];
+    result->m[3]  = a->m[3]  - b->m[3];
+
+    result->m[4]  = a->m[4]  - b->m[4];
+    result->m[5]  = a->m[5]  - b->m[5];
+    result->m[6]  = a->m[6]  - b->m[6];
+    result->m[7]  = a->m[7]  - b->m[7];
+
+    result->m[8]  = a->m[8]  - b->m[8];
+    result->m[9]  = a->m[9]  - b->m[9];
+    result->m[10] = a->m[10] - b->m[10];
+    result->m[11] = a->m[11] - b->m[11];
+
+    result->m[12] = a->m[12] - b->m[12];
+    result->m[13] = a->m[13] - b->m[13];
+    result->m[14] = a->m[14] - b->m[14];
+    result->m[15] = a->m[15] - b->m[15];
+}
+
+/**
+ * @brief Multiplies two 4x4 matrices using the row-linear combination method.
+ * * @details This implementation is fully unrolled and avoids standard dot-product column 
+ * jumps, making it extremely L1 cache-friendly. Modern compilers (GCC/Clang) with -O3 
+ * optimization will automatically vectorize this code into SIMD instructions for 
+ * hardware-level parallelism.
+ * * @param result Pointer to the resulting multiplied matrix.
+ * @param a Pointer to the left operand matrix (read-only).
+ * @param b Pointer to the right operand matrix (read-only).
+ */
+void mat4_multiply(mat4 *result, const mat4 *a, const mat4 *b) {
+    // ROW 1
+    result->m[0]  = a->m[0] * b->m[0]  + a->m[1] * b->m[4]  + a->m[2] * b->m[8]  + a->m[3] * b->m[12];
+    result->m[1]  = a->m[0] * b->m[1]  + a->m[1] * b->m[5]  + a->m[2] * b->m[9]  + a->m[3] * b->m[13];
+    result->m[2]  = a->m[0] * b->m[2]  + a->m[1] * b->m[6]  + a->m[2] * b->m[10] + a->m[3] * b->m[14];
+    result->m[3]  = a->m[0] * b->m[3]  + a->m[1] * b->m[7]  + a->m[2] * b->m[11] + a->m[3] * b->m[15];
+
+    // ROW 2
+    result->m[4]  = a->m[4] * b->m[0]  + a->m[5] * b->m[4]  + a->m[6] * b->m[8]  + a->m[7] * b->m[12];
+    result->m[5]  = a->m[4] * b->m[1]  + a->m[5] * b->m[5]  + a->m[6] * b->m[9]  + a->m[7] * b->m[13];
+    result->m[6]  = a->m[4] * b->m[2]  + a->m[5] * b->m[6]  + a->m[6] * b->m[10] + a->m[7] * b->m[14];
+    result->m[7]  = a->m[4] * b->m[3]  + a->m[5] * b->m[7]  + a->m[6] * b->m[11] + a->m[7] * b->m[15];
+
+    // ROW 3
+    result->m[8]  = a->m[8] * b->m[0]  + a->m[9] * b->m[4]  + a->m[10] * b->m[8]  + a->m[11] * b->m[12];
+    result->m[9]  = a->m[8] * b->m[1]  + a->m[9] * b->m[5]  + a->m[10] * b->m[9]  + a->m[11] * b->m[13];
+    result->m[10] = a->m[8] * b->m[2]  + a->m[9] * b->m[6]  + a->m[10] * b->m[10] + a->m[11] * b->m[14];
+    result->m[11] = a->m[8] * b->m[3]  + a->m[9] * b->m[7]  + a->m[10] * b->m[11] + a->m[11] * b->m[15];
+
+    // ROW 4
+    result->m[12] = a->m[12] * b->m[0] + a->m[13] * b->m[4] + a->m[14] * b->m[8]  + a->m[15] * b->m[12];
+    result->m[13] = a->m[12] * b->m[1] + a->m[13] * b->m[5] + a->m[14] * b->m[9]  + a->m[15] * b->m[13];
+    result->m[14] = a->m[12] * b->m[2] + a->m[13] * b->m[6] + a->m[14] * b->m[10] + a->m[15] * b->m[14];
+    result->m[15] = a->m[12] * b->m[3] + a->m[13] * b->m[7] + a->m[14] * b->m[11] + a->m[15] * b->m[15];
+}
+
+/**
+ * @brief Initializes a 4x4 matrix as an identity matrix.
+ * * @details Sets the main diagonal elements to 1.0f and all other elements to 0.0f. 
+ * In a simulation context, this represents the "zero state" or default 
+ * origin, rotation, and scale of an object.
+ * * @param result Pointer to the matrix to be initialized.
+ */
+void mat4_identity(mat4 *result) {
+    // ROW 1
+    result->m[0]  = 1.0f;  
+    result->m[1]  = 0.0f;  
+    result->m[2]  = 0.0f;  
+    result->m[3]  = 0.0f;
+
+    // ROW 2
+    result->m[4]  = 0.0f;  
+    result->m[5]  = 1.0f;  
+    result->m[6]  = 0.0f;  
+    result->m[7]  = 0.0f;
+
+    // ROW 3
+    result->m[8]  = 0.0f;  
+    result->m[9]  = 0.0f;  
+    result->m[10] = 1.0f;  
+    result->m[11] = 0.0f;
+
+    // ROW 4
+    result->m[12] = 0.0f;  
+    result->m[13] = 0.0f;  
+    result->m[14] = 0.0f;  
+    result->m[15] = 1.0f;
+}
