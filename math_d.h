@@ -65,7 +65,7 @@ double integral_d(MathFunc f, double begin, double end);
  */
 typedef struct {
     float m[16];
-} mat4;
+} __attribute__((aligned(16))) mat4;
 
 void mat4_add(mat4 *result, const mat4 *a, const mat4 *b);
 
@@ -74,6 +74,7 @@ void mat4_sub(mat4 *result, const mat4 *a, const mat4 *b);
 void mat4_multiply(mat4 *result, const mat4 *a, const mat4 *b);
 
 void mat4_identity(mat4 *result);
+
 
 
 
