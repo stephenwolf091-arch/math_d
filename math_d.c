@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "math_d.h"
+#include <immintrin.h> // for SIMD commands 
 
 /**
  * @brief Bitwise IEEE 754 Absolute Value
@@ -155,39 +156,32 @@ void mat4_sub(mat4 *result, const mat4 *a, const mat4 *b) {
 }
 
 /**
- * @brief Multiplies two 4x4 matrices using the row-linear combination method.
- * * @details This implementation is fully unrolled and avoids standard dot-product column 
- * jumps, making it extremely L1 cache-friendly. Modern compilers (GCC/Clang) with -O3 
- * optimization will automatically vectorize this code into SIMD instructions for 
- * hardware-level parallelism.
+ * @brief Multiplies two 4x4 matrices using hardware SIMD (SSE) instructions.
+ * * @details This function forces the CPU to use 128-bit packed operations (e.g., mulps, addps),
+ * bypassing compiler auto-vectorization guesswork. It solves the "strided memory access" 
+ * penalty by loading contiguous rows from matrix B and broadcasting single elements from matrix A.
  * * @param result Pointer to the resulting multiplied matrix.
- * @param a Pointer to the left operand matrix (read-only).
- * @param b Pointer to the right operand matrix (read-only).
+ * @param a Pointer to the left operand matrix (read-only, restrict to prevent aliasing).
+ * @param b Pointer to the right operand matrix (read-only, restrict to prevent aliasing).
  */
-void mat4_multiply(mat4 *result, const mat4 *a, const mat4 *b) {
-    // ROW 1
-    result->m[0]  = a->m[0] * b->m[0]  + a->m[1] * b->m[4]  + a->m[2] * b->m[8]  + a->m[3] * b->m[12];
-    result->m[1]  = a->m[0] * b->m[1]  + a->m[1] * b->m[5]  + a->m[2] * b->m[9]  + a->m[3] * b->m[13];
-    result->m[2]  = a->m[0] * b->m[2]  + a->m[1] * b->m[6]  + a->m[2] * b->m[10] + a->m[3] * b->m[14];
-    result->m[3]  = a->m[0] * b->m[3]  + a->m[1] * b->m[7]  + a->m[2] * b->m[11] + a->m[3] * b->m[15];
-
-    // ROW 2
-    result->m[4]  = a->m[4] * b->m[0]  + a->m[5] * b->m[4]  + a->m[6] * b->m[8]  + a->m[7] * b->m[12];
-    result->m[5]  = a->m[4] * b->m[1]  + a->m[5] * b->m[5]  + a->m[6] * b->m[9]  + a->m[7] * b->m[13];
-    result->m[6]  = a->m[4] * b->m[2]  + a->m[5] * b->m[6]  + a->m[6] * b->m[10] + a->m[7] * b->m[14];
-    result->m[7]  = a->m[4] * b->m[3]  + a->m[5] * b->m[7]  + a->m[6] * b->m[11] + a->m[7] * b->m[15];
-
-    // ROW 3
-    result->m[8]  = a->m[8] * b->m[0]  + a->m[9] * b->m[4]  + a->m[10] * b->m[8]  + a->m[11] * b->m[12];
-    result->m[9]  = a->m[8] * b->m[1]  + a->m[9] * b->m[5]  + a->m[10] * b->m[9]  + a->m[11] * b->m[13];
-    result->m[10] = a->m[8] * b->m[2]  + a->m[9] * b->m[6]  + a->m[10] * b->m[10] + a->m[11] * b->m[14];
-    result->m[11] = a->m[8] * b->m[3]  + a->m[9] * b->m[7]  + a->m[10] * b->m[11] + a->m[11] * b->m[15];
-
-    // ROW 4
-    result->m[12] = a->m[12] * b->m[0] + a->m[13] * b->m[4] + a->m[14] * b->m[8]  + a->m[15] * b->m[12];
-    result->m[13] = a->m[12] * b->m[1] + a->m[13] * b->m[5] + a->m[14] * b->m[9]  + a->m[15] * b->m[13];
-    result->m[14] = a->m[12] * b->m[2] + a->m[13] * b->m[6] + a->m[14] * b->m[10] + a->m[15] * b->m[14];
-    result->m[15] = a->m[12] * b->m[3] + a->m[13] * b->m[7] + a->m[14] * b->m[11] + a->m[15] * b->m[15];
+void mat4_multiply(mat4 *restrict result, const mat4 *restrict a, const mat4 *restrict b) {
+    for (int i = 0; i < 4; i++) {
+        // Initialize the result row vector to [0.0, 0.0, 0.0, 0.0]
+        __m128 row_result = _mm_setzero_ps(); 
+        
+        for (int j = 0; j < 4; j++) {
+            // Broadcast the scalar value a->m[i][j] to all 4 slots of the vector: [A, A, A, A]
+            __m128 a_val = _mm_set1_ps(a->m[i * 4 + j]); 
+            
+            // Load a contiguous 4-float row from matrix B: [B0, B1, B2, B3]
+            __m128 b_row = _mm_loadu_ps(&b->m[j * 4]); 
+            
+            // Hardware-level multiply and accumulate: result += (A * B_row)
+            row_result = _mm_add_ps(row_result, _mm_mul_ps(a_val, b_row));
+        }
+        // Store the computed 4-float vector directly into the result matrix row
+        _mm_storeu_ps(&result->m[i * 4], row_result);
+    }
 }
 
 /**

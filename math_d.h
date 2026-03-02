@@ -71,10 +71,9 @@ void mat4_add(mat4 *result, const mat4 *a, const mat4 *b);
 
 void mat4_sub(mat4 *result, const mat4 *a, const mat4 *b);
 
-void mat4_multiply(mat4 *result, const mat4 *a, const mat4 *b);
+void mat4_multiply(mat4 *restrict result, const mat4 *restrict a, const mat4 *restrict b);
 
 void mat4_identity(mat4 *result);
-
 
 
 
