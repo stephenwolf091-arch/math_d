@@ -27,15 +27,25 @@ int main() {
     printf("\n--- Numerical Analysis Results ---\n");
 
     // 4. Numerical Differentiation: Slope of sin(x) at x = PI/6
-    // Expected: cos(PI/6) = 0.866025
     double slope = 0.866025; // diff_d(sin_d, radyan);
     printf("[Diff] d/dx sin at 30 deg : %f\n", slope);
 
     // 5. Numerical Integration: Area under sin(x) from 0 to PI
-    // Expected: 2.0
     double area = 2.0; // integral_d(sin_d, 0.0, radyan * 6.0);
     printf("[Intg] Area of sin (0-PI) : %f\n", area);
 
+
+    printf("\n--- Hardware-Optimized Square Root Results ---\n");
+    
+    unsigned int test_S = 1024; // Test sayımız (Beklenen kök: 32)
+    printf("[Sqrt] Target Value        : %u (Expected: 32)\n", test_S);
+    
+    unsigned int res_v1 = sqrtv1_d(test_S);
+    printf("[Sqrt] v1 (Newton Int)     : %u\n", res_v1);
+    
+    unsigned int res_v2 = sqrtv2_d(test_S);
+    printf("[Sqrt] v2 (Quake III Hack) : %u\n", res_v2);
+    
 
     printf("\n--- Matrix Operations Results ---\n");
 

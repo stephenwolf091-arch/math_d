@@ -216,3 +216,77 @@ void mat4_identity(mat4 *result) {
     result->m[14] = 0.0f;  
     result->m[15] = 1.0f;
 }
+
+
+/**
+ * @brief Computes the integer square root using the Newton-Raphson method.
+ *
+ * @details This function calculates the floor of the square root of an unsigned integer.
+ * It utilizes an integer-optimized Newton-Raphson iteration. The division by 2
+ * is replaced by a right bit-shift (>> 1) to save hardware clock cycles.
+ *
+ * @note This algorithm still relies on the hardware division operator (/). 
+ * If the target architecture (e.g., a custom ALU or microcontroller) lacks 
+ * a dedicated hardware divider, this operation will be computationally expensive.
+ *
+ * @param S The unsigned integer for which the square root is to be calculated.
+ * @return The integer square root of S (floor(sqrt(S))).
+ */
+unsigned int sqrtv1_d(unsigned int S) {
+    // Base cases: sqrt(0) = 0, sqrt(1) = 1
+    if (S <= 1) return S;
+
+    // Initial guess: S / 2 (implemented as a right shift for performance)
+    unsigned int x_old = S >> 1;
+    unsigned int x_new = (x_old + (S / x_old)) >> 1;
+
+    // Iterate until the new approximation is no longer strictly decreasing
+    while (x_new < x_old) {
+        x_old = x_new;
+        x_new = (x_old + (S / x_old)) >> 1;
+    }
+
+    return x_old;
+}
+
+/**
+ * @brief Computes the integer square root using the Fast Inverse Square Root algorithm.
+ *
+ * @details This function adapts the legendary Quake III engine algorithm (0x5f3759df)
+ * to compute a highly optimized square root. It casts the integer to a float, performs 
+ * bit-level manipulation (type punning) on the IEEE 754 floating-point representation 
+ * to quickly approximate 1/sqrt(S), and refines it with a single Newton-Raphson step.
+ * Finally, it multiplies by S to yield sqrt(S) and casts it back to an unsigned integer.
+ *
+ * @note This method is strictly dependent on IEEE 754 compliance and the presence 
+ * of a hardware Floating Point Unit (FPU). On bare-metal systems without an FPU, 
+ * floating-point operations will trigger heavy software emulation routines, 
+ * completely nullifying the performance benefits.
+ *
+ * @param S The unsigned integer for which the square root is to be calculated.
+ * @return The integer square root of S (floor(sqrt(S))).
+ */
+unsigned int sqrtv2_d(unsigned int S) {
+    // Base cases: sqrt(0) = 0, sqrt(1) = 1
+    if (S <= 1) return S;
+
+    float number = (float)S;
+    float half_number = number * 0.5f;
+    
+    // Evil floating-point bit level hacking
+    long i = *(long*)&number;
+    
+    // The magic constant offset to align the exponent and minimize mantissa error
+    i = 0x5f3759df - (i >> 1);
+    
+    // Read the manipulated bits back as a float
+    float y = *(float*)&i;
+    
+    // 1st iteration of Newton-Raphson for floating-point refinement
+    y = y * (1.5f - (half_number * y * y));
+    
+    // S * (1/sqrt(S)) = sqrt(S)
+    float result = number * y;
+    
+    return (unsigned int)result;
+}

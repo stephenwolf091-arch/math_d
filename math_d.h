@@ -75,6 +75,37 @@ void mat4_multiply(mat4 *restrict result, const mat4 *restrict a, const mat4 *re
 
 void mat4_identity(mat4 *result);
 
+/**
+ * @brief Computes the integer square root using the Newton-Raphson method.
+ *
+ * @details Calculates the floor of the square root of an unsigned integer.
+ * It utilizes an integer-optimized Newton-Raphson iteration. The division by 2
+ * is replaced by a right bit-shift (>> 1) to save hardware clock cycles.
+ *
+ * @note Relies on the hardware division operator (/). If the target architecture 
+ * lacks a dedicated hardware divider, this operation will be computationally expensive.
+ *
+ * @param S The unsigned integer for which the square root is to be calculated.
+ * @return The integer square root of S (floor(sqrt(S))).
+ */
+unsigned int sqrtv1_d(unsigned int S);
+
+/**
+ * @brief Computes the integer square root using the Fast Inverse Square Root algorithm.
+ *
+ * @details Adapts the Quake III engine algorithm (0x5f3759df) to compute a highly 
+ * optimized square root. Performs bit-level manipulation (type punning) on the 
+ * IEEE 754 floating-point representation to quickly approximate 1/sqrt(S), 
+ * and refines it with a single Newton-Raphson step.
+ *
+ * @note Strictly dependent on IEEE 754 compliance and the presence of a hardware 
+ * Floating Point Unit (FPU). Do not use on bare-metal systems without an FPU.
+ *
+ * @param S The unsigned integer for which the square root is to be calculated.
+ * @return The integer square root of S (floor(sqrt(S))).
+ */
+unsigned int sqrtv2_d(unsigned int S);
+
 
 
 #endif // MATH_D_H
