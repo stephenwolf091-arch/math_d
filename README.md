@@ -39,12 +39,10 @@ unsigned int root_v1 = sqrtv1_d(1024); // Expected: 32
 
 // Example 5: Fast Inverse Square Root Hack (Requires FPU, Quake III style)
 unsigned int root_v2 = sqrtv2_d(1024); // Expected: 32
-
-// Example 6: Pure Bitwise Square Root (No division, no FPU, best for bare-metal)
-unsigned int root_v3 = sqrtv3_d(1024); // Expected: 32
 ```
 
 ## Build & Run
 ```
 gcc main.c math_d.c -o math_test -O3
+
 ./math_test
