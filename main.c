@@ -9,6 +9,11 @@ enum SYSCALLS {
     SYS_FAILED  = 1
 };
 
+//demo RK4 param function
+    float exp_growth_eq(float t, float y) {
+        return 0.5f * y;
+     };
+
 int main() {
     printf("--- [math_d] Library Unit Test & Demo ---\n\n");
 
@@ -99,6 +104,30 @@ int main() {
     for(int i=0; i<4; i++) {
         printf("       %5.1f %5.1f %5.1f %5.1f\n", 
             resultMul.m[i*4], resultMul.m[i*4+1], resultMul.m[i*4+2], resultMul.m[i*4+3]);
+    }
+
+    // --- Initial Conditions ---
+    float t_start = 0.0f;
+    float y_start = 10.0f;
+    float step_h  = 1.0f;
+
+    // 9. ODE Integration Test: dy/dt = 0.5 * y
+    float result_y = rk4_step_d(exp_growth_eq, t_start, y_start, step_h);
+
+    printf("[ODE] RK4 Integration Step (Single Step):\n");
+    printf("       Input  -> t: %5.1f, y: %5.1f, h: %5.1f\n", t_start, y_start, step_h);
+    printf("       Result -> next_y: %5.2f\n", result_y);
+    printf("       Delta  -> dy: %5.2f\n", result_y - y_start);
+
+    // Optional: Simulation over multiple steps
+    printf("\n[ODE] Simulation Loop (5 Steps):\n");
+    float t_sim = t_start;
+    float y_sim = y_start;
+    
+    for(int i = 1; i <= 5; i++) {
+        y_sim = rk4_step_d(exp_growth_eq, t_sim, y_sim, step_h);
+        t_sim += step_h;
+        printf("       Step %d -> t: %5.1f, y: %7.2f\n", i, t_sim, y_sim);
     }
 
     printf("\n--- Press Enter to Exit ---\n");

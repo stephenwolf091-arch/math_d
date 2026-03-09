@@ -290,3 +290,44 @@ unsigned int sqrtv2_d(unsigned int S) {
     
     return (unsigned int)result;
 }
+
+
+
+/**
+ * @brief 4th Order Runge-Kutta (RK4) Numerical Integration Step.
+ *
+ * This function solves an Ordinary Differential Equation (ODE) for a single
+ * step. It calculates the weighted average of four slopes (k1, k2, k3, k4) 
+ * to provide a highly accurate estimation of the next value in a system.
+ *
+ * @param f The differential function to solve (dy/dt = f(t, y)).
+ * @param t The current value of the independent variable (e.g., time).
+ * @param y The current value of the dependent variable (e.g., position/velocity).
+ * @param h The step size (delta t).
+ *
+ * @return float The estimated value of y at the next step (y + h).
+ */
+float rk4_step_d(DifferentialFunc f, float t, float y, float h) {
+    float k1, k2, k3, k4;
+
+    /* Pre-calculate half-step to reduce divisions and CPU cycles */
+    const float half_h = h * 0.5f;
+
+    /* k1: Slope at the beginning of the interval */
+    k1 = f(t, y);
+
+    /* k2: Estimated slope at the midpoint using k1 */
+    k2 = f(t + half_h, y + half_h * k1);
+
+    /* k3: Refined estimated slope at the midpoint using k2 */
+    k3 = f(t + half_h, y + half_h * k2);
+
+    /* k4: Estimated slope at the end of the interval using k3 */
+    k4 = f(t + h, y + h * k3);
+
+    /* Weighted average: (k1 + 2k2 + 2k3 + k4) / 6 
+       Using multiplication by (1/6) for better performance on embedded systems */
+    float calc_inc = (k1 + 2.0f * k2 + 2.0f * k3 + k4) * (1.0f / 6.0f);
+
+    return y + (h * calc_inc);
+}

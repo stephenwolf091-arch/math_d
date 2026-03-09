@@ -15,6 +15,11 @@
  */
 typedef double (*MathFunc)(double);
 
+/**
+ * @brief  Calculating For RK4 Method.
+ */
+typedef float (*DifferentialFunc)(float, float);
+
 /* --- Core Mathematical Functions --- */
 
 /**
@@ -105,6 +110,8 @@ unsigned int sqrtv1_d(unsigned int S);
  * @return The integer square root of S (floor(sqrt(S))).
  */
 unsigned int sqrtv2_d(unsigned int S);
+
+float rk4_step_d(DifferentialFunc f, float t, float y, float h);
 
 
 
